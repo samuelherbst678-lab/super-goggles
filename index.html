@@ -613,7 +613,7 @@ setDefaults();
     const bar = $(`#colChart .ard-bar[data-name="${CSS.escape(name)}"]`);
     if(!bar) return;
     bar.querySelector(".fill").style.height = "0%";
-    bar.querySelector(".val").textContent   = `${commaDe(0)}%`;
+    bar.querySelector(".val").textContent   = `${commaDe(80)}%`;
   }
   function stepNext(){
     const list = getPercentSorted();
