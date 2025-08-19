@@ -62,7 +62,7 @@
 </head>
 <body>
   <h1>Koalitionsrechner – Proportionale Sitzverteilung</h1>
-  <p class="sub">Koalitionen testen, Historik 1949–2025, ARD-Prognose-Overlay (Säulen & Sitz-Halbkreis).</p>
+  <p class="sub">Koalitionen testen, Historik 1949–2025, Prognose-Overlay (nur Säulen mit Hochfahr-Animation).</p>
 
   <div class="wrap">
     <!-- Eingaben -->
@@ -115,7 +115,7 @@
       </p>
     </section>
 
-    <!-- Visualisierung -->
+    <!-- Visualisierung (Hauptansicht) -->
     <section class="card">
       <svg id="seatChart" viewBox="0 0 900 650" preserveAspectRatio="xMidYMin meet"></svg>
       <div class="legend" id="legend"></div>
@@ -151,6 +151,9 @@
             <option value="Rot-Rote Koalition">Rot-Rote Koalition</option>
           </select>
         </div>
+        <div class="row">
+          <button id="showArdBtn" type="button">ARD-Prognose starten</button>
+        </div>
       </div>
     </section>
   </div>
@@ -183,7 +186,7 @@
 </script>
 
 <script>
-/* ----- Polyfill: CSS.escape (Safari/iOS) ----- */
+/* Polyfill: CSS.escape (Safari/iOS) */
 if (!window.CSS || typeof CSS.escape !== "function") {
   window.CSS = window.CSS || {};
   CSS.escape = function (value) {
@@ -194,7 +197,7 @@ if (!window.CSS || typeof CSS.escape !== "function") {
   };
 }
 
-/* ===== Presets (Koalitionsnamen) ===== */
+/* Koalitions-Presets */
 const PRESETS = {
   "Schwarz-Rot (Groko)":     ["CDU/CSU","SPD"],
   "Schwarz-Grün":            ["CDU/CSU","Grüne","Grüne/B90"],
@@ -214,7 +217,7 @@ const PRESETS = {
   "Rot-Rote Koalition":      ["SPD","Linke"]
 };
 
-/* ===== Helpers & State ===== */
+/* Helpers & State */
 const $  = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 let selectedCoalition = new Set();
@@ -222,7 +225,7 @@ const GREY = "#b7bdc7";
 function norm(n){ return (n||"").toString().trim().toLowerCase().replace(/\s+/g,""); }
 function isOther(name){ const n=norm(name); return n==="andere" || n==="sonstige"; }
 
-/* ===== Defaults ===== */
+/* Defaults */
 const defaultParties = [
   {name:"CDU/CSU", color:"#000000", pct:28},
   {name:"SPD",     color:"#E3000F", pct:17},
@@ -233,7 +236,7 @@ const defaultParties = [
   {name:"BSW",     color:"#FF6A00", pct:7}
 ];
 
-/* ===== UI ===== */
+/* UI */
 function addPartyRow(p = {name:"Neue Partei", color:"#8888ff", pct:0, exception:false}){
   const row=document.createElement("div");
   row.className="party-row";
@@ -260,7 +263,7 @@ function setDefaults(){
   calcAndRender();
 }
 
-/* ===== Verfahren ===== */
+/* Verfahren */
 function filterByThreshold(parties, threshold, exceptions){
   return parties.filter(p =>
     !isOther(p.name) &&
@@ -301,7 +304,7 @@ function computeSeats(parties,seats,threshold,exceptions,method){
   return result;
 }
 
-/* ===== Zeichnen & Layout ===== */
+/* Zeichnen & Layout */
 function layoutArcs(data,total,sel){
   const coal = data.filter(p=>p.seats>0 && sel.has(p.name));
   const rest = data.filter(p=>p.seats>0 && !sel.has(p.name));
@@ -351,7 +354,7 @@ function drawHalfRing(svg,data,total,sel){
   $("#majorityLbl").textContent = (Math.floor(total/2)+1).toString();
 }
 
-/* ===== Legend & Koalitionen-UI ===== */
+/* Legend & Koalitionen-UI */
 function renderLegend(d){
   const el=$("#legend"); el.innerHTML="";
   d.filter(p=>p.seats>0 && !isOther(p.name)).forEach(p=>{
@@ -379,7 +382,7 @@ function renderChecklist(d){
   });
 }
 
-/* ===== Koalitionssumme ===== */
+/* Koalitionssumme */
 function recomputeCoalitionSum(){
   const totalSeats = parseInt($("#totalSeats").value)||0;
   const majority   = Math.floor(totalSeats/2)+1;
@@ -391,11 +394,8 @@ function recomputeCoalitionSum(){
   $("#coalMajority").className   = ok ? "ok" : "bad";
 }
 
-/* ===== History Handling ===== */
-function getHistData(){
-  try{ return JSON.parse(document.getElementById("HIST_DATA").textContent); }
-  catch(e){ console.error(e); return {}; }
-}
+/* History */
+function getHistData(){ try{ return JSON.parse(document.getElementById("HIST_DATA").textContent); }catch(e){ return {}; } }
 function fillHistoryDropdown(){
   const hist = getHistData();
   const sel = $("#historyPreset");
@@ -414,7 +414,7 @@ function parseCSV(text){
   });
 }
 
-/* ===== Haupt-Loop ===== */
+/* Haupt-Loop */
 function readInputs(){
   const partyRows=$$("#partyList .party-row");
   const parties=partyRows.map(r=>({
@@ -447,7 +447,7 @@ function calcAndRender(){
   recomputeCoalitionSum();
 }
 
-/* ===== Events ===== */
+/* Events */
 $("#addRowBtn").addEventListener("click", ()=>{ addPartyRow(); calcAndRender(); });
 $("#resetBtn").addEventListener("click", setDefaults);
 $("#calcBtn").addEventListener("click", calcAndRender);
@@ -456,7 +456,7 @@ $("#threshold").addEventListener("change", calcAndRender);
 $("#method").addEventListener("change", calcAndRender);
 $("#exceptions").addEventListener("change", calcAndRender);
 
-// Preset-Auswahl (Koalition) – ohne Stimme
+// Koalitions-Preset
 $("#presetCoalition").addEventListener("change", ()=>{
   const key = $("#presetCoalition").value;
   selectedCoalition = key ? new Set(PRESETS[key] || []) : new Set();
@@ -480,14 +480,13 @@ $("#loadFileBtn").addEventListener("click", async ()=>{
   setPartyList(list); selectedCoalition=new Set(); calcAndRender();
 });
 
-/* ===== Init ===== */
+/* Init */
 setDefaults();
 </script>
 
-<!-- ===== ARD-Prognose Add-on: Säulen (ohne Stimme) + Step-Through + Sitz-Halbkreis ===== -->
+<!-- ===== ARD-Prognose OVERLAY – NUR SÄULEN ===== -->
 <script>
 (function(){
-  /* Styles */
   const css = `
   .ard-overlay{position:fixed; inset:0; background:rgba(5,10,20,.6); backdrop-filter:blur(6px);
     display:flex; align-items:center; justify-content:center; z-index:9999}
@@ -498,120 +497,60 @@ setDefaults();
   .ard-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px}
   .ard-title{font-weight:800; letter-spacing:.5px; text-transform:uppercase; font-size:18px}
   .ard-sub{opacity:.8; font-size:12px}
-  .ard-tabs{display:flex; gap:8px; margin:8px 0 10px}
-  .ard-tab{border:1px solid rgba(255,255,255,.18); background:#0d2547; color:#eaf2ff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700}
-  .ard-tab.active{background:#123264}
   .ard-progline{height:2px; background:linear-gradient(90deg,#ffe066,#7cc6ff); opacity:.7; margin:6px 0 10px; border-radius:2px}
-  .ard-cols{display:grid; grid-template-columns:1fr 420px; gap:16px}
-  @media (max-width:980px){ .ard-cols{grid-template-columns:1fr} }
-
-  /* Säulen-Chart */
   .ard-colchart{display:flex; align-items:flex-end; gap:12px; height:280px; background:rgba(255,255,255,.04);
     border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px}
   .ard-bar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:8px}
   .ard-bar .bar{width:100%; min-width:28px; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.1);
-    border-radius:8px; overflow:hidden; position:relative; height:100%} /* FIX: 100% statt 0% */
+    border-radius:8px; overflow:hidden; position:relative; height:100%}
   .ard-bar .fill{position:absolute; left:0; right:0; bottom:0; height:0%; transition:height .8s cubic-bezier(.2,.8,.2,1)}
   .ard-bar .lbl{font-size:12px; opacity:.9; text-align:center}
   .ard-bar .val{font-variant-numeric:tabular-nums; font-weight:800; color:#ffe066; font-size:12px}
-
-  .ard-controls{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 0}
+  .ard-controls{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 0}
   .ard-btn{border:1px solid rgba(255,255,255,.18); background:#0d2547; color:#eaf2ff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700}
   .ard-btn.secondary{background:#0e1a33}
-
-  /* Overlay-Chart (Halbkreis) */
-  .ard-chart-wrap{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px}
-  .ard-legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
-  .ard-note{font-size:11px; opacity:.7; margin-top:6px}
-  .ard-foot{display:flex; gap:8px; justify-content:flex-end; margin-top:10px}
-  .ard-close{margin-right:auto}
+  .ard-foot{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
   `;
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
-  /* Utils */
+  const GREY = "#b7bdc7";
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
-  const GREY = "#b7bdc7";
-  function norm(n){ return (n||"").toString().trim().toLowerCase().replace(/\s+/g,""); }
-  function isOther(name){ const n=norm(name); return n==="andere" || n==="sonstige"; }
-  function commaDe(x){ return Number(x||0).toFixed(1).replace(".", ","); }
+  const commaDe = x => Number(x||0).toFixed(1).replace(".", ",");
 
-  /* Buttons einfügen */
-  function ensureButtons(){
-    if ($("#showArdBtn")) return;
-    const coalCard = Array.from($$(".card h3")).find(h => /Koalitionen/i.test(h.textContent))?.parentElement || document.body;
-    const bar = document.createElement("div"); bar.className="row";
-    bar.innerHTML = `<button id="showArdBtn" type="button" class="ard-btn">ARD-Prognose starten</button>`;
-    coalCard.appendChild(bar);
-    $("#showArdBtn").addEventListener("click", ()=> openOverlay());
-  }
+  // Button schon im Hauptcode vorhanden → Listener hier:
+  $("#showArdBtn").addEventListener("click", openOverlay);
 
-  /* Daten aus Hauptapp */
-  function getInputs(){ return (typeof readInputs==="function") ? readInputs() : null; }
-  function computeShown(){
-    const inp=getInputs(); if(!inp) return {total:0,data:[]};
-    const data = computeAndOrder(inp.parties, inp.totalSeats, inp.threshold, inp.exceptions, inp.method);
-    return { total: inp.totalSeats, data };
-  }
-  function getPercentSorted(){
-    const inp=getInputs(); if(!inp) return [];
-    return inp.parties.filter(p=>p && p.name && !isOther(p.name) && (p.pct||0)>0)
-      .sort((a,b)=>(b.pct||0)-(a.pct||0));
-  }
-
-  /* Overlay Grundaufbau */
-  let ov, tabMode="pct", stepIndex=0, autoTimer=null;
+  let ov, stepIndex=0, autoTimer=null, colOrder=[];
 
   function buildOverlay(){
-    if (ov) return ov;
+    if(ov) return ov;
     ov = document.createElement("div");
-    ov.className="ard-overlay"; ov.id="ardOverlay"; ov.style.display="none";
+    ov.className="ard-overlay"; ov.style.display="none";
     ov.innerHTML = `
       <div class="ard-panel">
         <div class="ard-head">
           <div>
             <div class="ard-title">Prognose – ARD-Stil (inoffiziell)</div>
-            <div class="ard-sub">Basis: deine aktuellen Eingaben – Säulen & Sitzhalbkreis</div>
+            <div class="ard-sub">Basis: deine aktuellen Eingaben – Säulen mit Hochfahr-Animation</div>
           </div>
           <button class="ard-btn ard-close">Schließen</button>
-        </div>
-
-        <div class="ard-tabs">
-          <button class="ard-tab active" id="tabPct">Prozent (Säulen)</button>
-          <button class="ard-tab" id="tabSeats">Sitze (Halbkreis)</button>
-          <button class="ard-tab" id="tabCoal">Koalitionen</button>
         </div>
 
         <div class="ard-progline"></div>
 
-        <div class="ard-cols">
-          <div>
-            <div id="colChart" class="ard-colchart"></div>
-            <div class="ard-controls">
-              <button class="ard-btn" id="btnStepReset">⟲ Reset</button>
-              <button class="ard-btn" id="btnPrev">⟸ Zurück</button>
-              <button class="ard-btn" id="btnNext">Weiter ⟹</button>
-              <button class="ard-btn secondary" id="btnAuto">▶ Auto</button>
-              <button class="ard-btn secondary" id="btnStop" disabled>⏹ Stop</button>
-            </div>
-          </div>
+        <div id="colChart" class="ard-colchart"></div>
 
-          <div class="ard-chart-wrap">
-            <svg id="overlaySeatChart" viewBox="0 0 900 650" preserveAspectRatio="xMidYMin meet" style="width:100%;height:auto;"></svg>
-            <div class="ard-legend" id="overlayLegend"></div>
-            <div class="ard-note">Hinweis: Optik angelehnt, keine Logos/Marken.</div>
-          </div>
+        <div class="ard-controls">
+          <button class="ard-btn" id="btnStepReset">⟲ Reset</button>
+          <button class="ard-btn" id="btnPrev">⟸ Zurück</button>
+          <button class="ard-btn" id="btnNext">Weiter ⟹</button>
+          <button class="ard-btn secondary" id="btnAuto">▶ Auto</button>
+          <button class="ard-btn secondary" id="btnStop" disabled>⏹ Stop</button>
         </div>
 
         <div class="ard-foot">
           <button class="ard-btn ard-close">Schließen</button>
-          <span style="flex:1"></span>
-          <select class="ard-btn secondary" id="coalPreset">
-            <option value="">Koalition wählen …</option>
-            ${Object.keys(PRESETS).map(k=>`<option value="${k}">${k}</option>`).join("")}
-          </select>
-          <button class="ard-btn secondary" id="coalPlay">▶ Koalitionen abspielen</button>
-          <button class="ard-btn secondary" id="coalStop" disabled>⏹ Stopp</button>
         </div>
       </div>
     `;
@@ -619,67 +558,30 @@ setDefaults();
     ov.querySelectorAll(".ard-close").forEach(b=> b.addEventListener("click", closeOverlay));
     ov.addEventListener("click", e=>{ if(e.target===ov){ closeOverlay(); }});
 
-    $("#tabPct").onclick = ()=> setTab("pct");
-    $("#tabSeats").onclick= ()=> setTab("seats");
-    $("#tabCoal").onclick = ()=> setTab("coal");
-
     $("#btnStepReset").onclick = ()=> stepReset();
     $("#btnPrev").onclick      = ()=> stepPrev();
     $("#btnNext").onclick      = ()=> stepNext();
     $("#btnAuto").onclick      = ()=> autoStart();
     $("#btnStop").onclick      = ()=> autoStop();
 
-    $("#coalPreset").onchange = ()=>{
-      const key = $("#coalPreset").value;
-      renderCoalition(key ? new Set(PRESETS[key]) : new Set());
-    };
-    $("#coalPlay").onclick = coalitionsAuto;
-    $("#coalStop").onclick = coalitionsStop;
-
     return ov;
   }
-
-  function closeOverlay(){
-    autoStop(); coalitionsStop();
-    ov.style.display="none";
-  }
-
+  function closeOverlay(){ autoStop(); ov.style.display="none"; }
   function openOverlay(){
     buildOverlay();
-    setTab("pct");
     ov.style.display="flex";
-    buildColumns();       // Säulen aufsetzen
-    updateOverlaySeats(null); // alle farbig
-    stepReset();          // Startzustand
+    buildColumns();
+    stepReset();
   }
 
-  function setTab(mode){
-    tabMode = mode;
-    $("#tabPct").classList.toggle("active", mode==="pct");
-    $("#tabSeats").classList.toggle("active", mode==="seats");
-    $("#tabCoal").classList.toggle("active", mode==="coal");
-    renderTab();
+  function getPercentSorted(){
+    if (typeof readInputs !== "function") return [];
+    const inp = readInputs();
+    return inp.parties.filter(p=>p && p.name && p.pct>0 && norm(p.name)!=="andere" && norm(p.name)!=="sonstige")
+                      .sort((a,b)=>(b.pct||0)-(a.pct||0));
   }
 
-  function renderTab(){
-    if(tabMode==="pct"){
-      buildColumns();
-      stepReset();
-      updateOverlaySeats(null);
-    } else if (tabMode==="seats"){
-      buildColumns(true);
-      const {total,data} = computeShown();
-      drawHalfRing($("#overlaySeatChart"), data.map(p=>({...p})), total, new Set(data.map(p=>p.name)));
-      renderOverlayLegend(data);
-    } else { // coal
-      buildColumns(true);
-      updateOverlaySeats(new Set()); // grau
-    }
-  }
-
-  /* ===== Säulen-Chart (manueller Step-Through) ===== */
-  let colOrder = []; // Reihenfolge der Parteien (sortiert nach %)
-  function buildColumns(neutral=false){
+  function buildColumns(){
     const col = $("#colChart"); col.innerHTML="";
     const list = getPercentSorted();
     colOrder = list.map(p=>p.name);
@@ -689,7 +591,7 @@ setDefaults();
       el.dataset.name = p.name;
       el.innerHTML = `
         <div class="val">${commaDe(0)}%</div>
-        <div class="bar"><div class="fill" style="background:${neutral? "rgba(255,255,255,.25)": p.color};"></div></div>
+        <div class="bar"><div class="fill" style="background:${p.color}; height:0%"></div></div>
         <div class="lbl">${p.name}</div>
       `;
       col.appendChild(el);
@@ -700,15 +602,14 @@ setDefaults();
     autoStop();
     stepIndex = 0;
     $$("#colChart .ard-bar").forEach(b=>{
-      b.querySelector(".fill").style.height = "0%";
-      b.querySelector(".val").textContent   = `${commaDe(0)}%`;
+      const f=b.querySelector(".fill"); const v=b.querySelector(".val");
+      f.style.height="0%"; v.textContent=`${commaDe(0)}%`;
     });
   }
   function stepPrev(){
     if(stepIndex<=0) return;
     stepIndex--;
     const name = colOrder[stepIndex];
-    const p = getPercentSorted().find(x=>x.name===name);
     const bar = $(`#colChart .ard-bar[data-name="${CSS.escape(name)}"]`);
     if(!bar) return;
     bar.querySelector(".fill").style.height = "0%";
@@ -720,18 +621,20 @@ setDefaults();
     const p = list[stepIndex];
     const bar = $(`#colChart .ard-bar[data-name="${CSS.escape(p.name)}"]`);
     if(!bar) return;
-    const target = Math.min(100, (p.pct||0)*1.6); // visuelle Verstärkung, max 100
-    bar.querySelector(".fill").style.background = p.color;
-    // Trigger Animation
-    requestAnimationFrame(()=>{ bar.querySelector(".fill").style.height = target + "%"; });
-    bar.querySelector(".val").textContent = `${commaDe(p.pct)}%`;
+    const fill = bar.querySelector(".fill");
+    const val  = bar.querySelector(".val");
+    // Sicher: erst Startzustand setzen, dann im nächsten Frame Zielhöhe → Animation
+    fill.style.height = "0%";
+    val.textContent   = `${commaDe(0)}%`;
+    const target = Math.min(100, p.pct||0);
+    requestAnimationFrame(()=>{ fill.style.height = target + "%"; val.textContent = `${commaDe(p.pct)}%`; });
     stepIndex++;
   }
   function autoStart(){
     autoStop();
     $("#btnAuto").disabled=true; $("#btnStop").disabled=false;
-    const list = getPercentSorted();
     stepReset();
+    const list = getPercentSorted();
     autoTimer = setInterval(()=>{
       if(stepIndex >= list.length){ autoStop(); return; }
       stepNext();
@@ -741,56 +644,6 @@ setDefaults();
     if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
     $("#btnAuto").disabled=false; $("#btnStop").disabled=true;
   }
-
-  /* ===== Overlay-Sitzhalbkreis & Legende ===== */
-  function updateOverlaySeats(sel){
-    const {total, data} = computeShown();
-    if(sel===null){
-      const set = new Set(data.map(p=>p.name)); // alle farbig
-      drawHalfRing($("#overlaySeatChart"), data.map(p=>({...p})), total, set);
-      renderOverlayLegend(data);
-    }else{
-      drawHalfRing($("#overlaySeatChart"), data.map(p=>({...p})), total, sel||new Set());
-      const legendData = data.map(p=> sel && sel.has(p.name) ? p : {...p, color: GREY});
-      renderOverlayLegend(legendData);
-    }
-  }
-  function renderOverlayLegend(list){
-    const el=$("#overlayLegend"); el.innerHTML="";
-    list.forEach(p=>{
-      const n=document.createElement("div"); n.className="item";
-      n.innerHTML=`<span class="sw" style="background:${p.color}"></span><strong>${p.name}</strong> – ${p.seats||0} Sitze`;
-      el.appendChild(n);
-    });
-  }
-
-  /* ===== Koalitionen im Overlay ===== */
-  function renderCoalition(set){
-    updateOverlaySeats(set);
-  }
-  let coalTimer=null;
-  function coalitionsAuto(){
-    coalitionsStop();
-    const { data } = computeShown();
-    const present = new Set(data.map(p=>p.name));
-    const keys = Object.keys(PRESETS).filter(k => (PRESETS[k]||[]).some(n=>present.has(n)));
-    if(!keys.length){ alert("Keine passenden Presets für die aktuellen Parteien gefunden."); return; }
-    $("#coalPlay").disabled=true; $("#coalStop").disabled=false;
-    let i=0;
-    coalTimer = setInterval(()=>{
-      const key = keys[i % keys.length];
-      $("#coalPreset").value = key;
-      renderCoalition(new Set(PRESETS[key]));
-      i++;
-    }, 2000);
-  }
-  function coalitionsStop(){
-    if(coalTimer){ clearInterval(coalTimer); coalTimer=null; }
-    $("#coalPlay").disabled=false; $("#coalStop").disabled=true;
-  }
-
-  /* Init */
-  ensureButtons();
 })();
 </script>
 
